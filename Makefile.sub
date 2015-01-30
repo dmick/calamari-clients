@@ -16,11 +16,10 @@ default: build
 build: build-stamp
 
 clean:
-	if [ -d node_modules ] ; then ./node_modules/grunt-cli/bin/grunt --no-color clean; fi
+	if [ -d node_modules ] ; then grunt --no-color clean; fi
 	rm -f build-stamp
 
 build-stamp: $(QUOTED_SRCS)
-	npm install --loglevel warn
 	./node_modules/bower/bin/bower --allow-root --config.interactive=false install
 	./node_modules/grunt-cli/bin/grunt --no-color --force saveRevision
 	./node_modules/grunt-cli/bin/grunt --no-color --force build

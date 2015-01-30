@@ -24,7 +24,7 @@ SUSE_TAR=$(SUSE_PKG).tar.gz
 
 DISTNAMEVER=calamari-clients_$(VERSION)
 PKGDIR=calamari-clients-$(VERSION)
-TARNAME = ../$(DISTNAMEVER).tar.gz
+TARNAME = ../$(DISTNAMEVER).tar.xz
 
 INSTALL=/usr/bin/install
 
@@ -34,7 +34,6 @@ CONFIG_JSON = dashboard/dist/scripts/config.json
 
 FINDCMD =find . \
         -name .git -prune \
-        -o -name node_modules -prune \
         -o -name .tmp -prune \
         -o -name .sass-cache -prune \
         -o -name debian -prune \
@@ -149,16 +148,23 @@ dist:
 	for d in $(UI_SUBDIRS); do \
 		echo $$d; \
 		(cd $$d; \
-		QUOTED_SRCS=$$(git ls-files -z | while IFS= read -d $$'\0' f; do echo -n "$$f" | sed -e 's/ /\?/g' -e 's/\$$/\?/g'; echo -n " "; done); \
-		echo "QUOTED_SRCS=$$QUOTED_SRCS" > Makefile; \
-		echo "include ../Makefile.sub" >> Makefile; \
-		npm install --silent; \
+		npm install --loglevel warn; \
 		grunt --no-color saveRevision) \
 	done
-	@rm -rf $(PKGDIR)
-	@$(FINDCMD) | cpio --null -p -d $(PKGDIR)
-	@tar -zcf $(TARNAME) $(PKGDIR)
-	@rm -rf $(PKGDIR)
+	bundle package
+	rm -rf $(PKGDIR)
+	$(FINDCMD) | cpio --null -p -d $(PKGDIR)
+	cd $(PKGDIR)
+	for d in $(UI_SUBDIRS); do \
+		echo $$d; \
+		(cd $$d; \
+		QUOTED_SRCS=$$(git ls-files -z | while IFS= read -d $$'\0' f; do echo -n "$$f" | sed -e 's/ /\?/g' -e 's/\$$/\?/g'; echo -n " "; done); \
+		echo "QUOTED_SRCS=$$QUOTED_SRCS" > Makefile; \
+		echo "include ../Makefile.sub" >> Makefile) \
+	done
+	cd ../
+	tar -Jcf $(TARNAME) $(PKGDIR)
+	rm -rf $(PKGDIR)
 	@echo "tar file made in $(TARNAME)"
 
 .PHONY: dist clean build dpkg install

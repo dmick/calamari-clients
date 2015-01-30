@@ -148,7 +148,10 @@ dist:
 	@echo "making dist tarball in $(TARNAME)"
 	for d in $(UI_SUBDIRS); do \
 		echo $$d; \
-		(cd $$d;  \
+		(cd $$d; \
+		QUOTED_SRCS=$$(git ls-files -z | while IFS= read -d $$'\0' f; do echo -n "$$f" | sed -e 's/ /\?/g' -e 's/\$$/\?/g'; echo -n " "; done); \
+		echo "QUOTED_SRCS=$$QUOTED_SRCS" > Makefile; \
+		echo "include ../Makefile.sub" >> Makefile; \
 		npm install --silent; \
 		grunt --no-color saveRevision) \
 	done

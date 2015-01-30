@@ -9,19 +9,19 @@ SHELL=/bin/bash
 #    (since '?' matches ' ').  I wish I could take credit for this last
 #    bit of trickery.
 
-QUOTED_SRCS=$(shell git ls-files -z | while IFS= read -d $$'\0' f; do echo "$$f" | sed 's/ /\?/g' ; done)
+QUOTED_SRCS ?= $(shell git ls-files -z | while IFS= read -d $$'\0' f; do echo "$$f" | sed 's/ /\?/g' ; done)
 
 default: build
 
 build: build-stamp
 
 clean:
-	if [ -d node_modules ] ; then grunt --no-color clean; fi
+	if [ -d node_modules ] ; then ./node_modules/grunt-cli/bin/grunt --no-color clean; fi
 	rm -f build-stamp
 
 build-stamp: $(QUOTED_SRCS)
 	npm install --loglevel warn
-	bower --allow-root --config.interactive=false install
-	grunt --no-color saveRevision
-	grunt --no-color build
+	./node_modules/bower/bin/bower --allow-root --config.interactive=false install
+	./node_modules/grunt-cli/bin/grunt --no-color --force saveRevision
+	./node_modules/grunt-cli/bin/grunt --no-color --force build
 	touch build-stamp
